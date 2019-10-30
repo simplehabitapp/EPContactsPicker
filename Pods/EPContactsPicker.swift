@@ -37,7 +37,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     
     // MARK: - Properties
     
-    open weak var contactDelegate: EPPickerDelegate?
+    open var contactDelegate: EPPickerDelegate?
     var contactsStore: CNContactStore?
     var resultSearchController = UISearchController()
     var orderedContacts = [String: [CNContact]]() //Contacts ordered in dicitonary alphabetically
