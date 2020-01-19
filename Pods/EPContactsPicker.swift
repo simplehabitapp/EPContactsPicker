@@ -24,6 +24,11 @@ public extension EPPickerDelegate {
 	func epContactPicker(_: EPContactsPicker, didSelectMultipleContacts contacts: [EPContact]) { }
 }
 
+public protocol EPExternalSourceDelegate {
+    func epExternalContactsSectionTitle() -> String
+    func epExternalContactsData() -> [CNContact]
+}
+
 typealias ContactsHandler = (_ contacts : [CNContact] , _ error : NSError?) -> Void
 
 public enum SubtitleCellValue{
@@ -38,6 +43,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     // MARK: - Properties
     
     open var contactDelegate: EPPickerDelegate?
+    public var externalSourceDelegate: EPExternalSourceDelegate?
     var contactsStore: CNContactStore?
     var resultSearchController = UISearchController()
     var orderedContacts = [String: [CNContact]]() //Contacts ordered in dicitonary alphabetically
@@ -209,6 +215,13 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
                         self.sortedContactKeys.removeFirst()
                         self.sortedContactKeys.append("#")
                     }
+                    if self.externalSourceDelegate != nil {
+                        let externalSectionTitle = self.externalSourceDelegate!.epExternalContactsSectionTitle()
+                        let externalContacts = self.externalSourceDelegate!.epExternalContactsData()
+                        
+                        self.sortedContactKeys.insert(externalSectionTitle, at: 0)
+                        self.orderedContacts[externalSectionTitle] = externalContacts
+                    }
                     completion(contactsArray, nil)
                 }
                 //Catching exception as enumerateContactsWithFetchRequest can throw errors
@@ -312,13 +325,14 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     
     override open func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
         if resultSearchController.isActive { return 0 }
+        if title.count > 1 { return 0 }
         tableView.scrollToRow(at: IndexPath(row: 0, section: index), at: UITableView.ScrollPosition.top , animated: false)
         return sortedContactKeys.firstIndex(of: title)!
     }
     
     override  open func sectionIndexTitles(for tableView: UITableView) -> [String]? {
         if resultSearchController.isActive { return nil }
-        return sortedContactKeys
+        return sortedContactKeys.filter { $0 != externalSourceDelegate?.epExternalContactsSectionTitle() }
     }
 
     override open func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {

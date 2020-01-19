@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import Contacts
 
 class ViewController: UIViewController, EPPickerDelegate {
 
@@ -22,7 +23,8 @@ class ViewController: UIViewController, EPPickerDelegate {
 
   @IBAction func onTouchShowMeContactsButton(_ sender: AnyObject) {
     
-    let contactPickerScene = EPContactsPicker(delegate: self, multiSelection:true, subtitleCellType: SubtitleCellValue.email)
+    let contactPickerScene = EPContactsPicker(delegate: self, multiSelection:true, subtitleCellType: .phoneNumber)
+    contactPickerScene.externalSourceDelegate = self
     let navigationController = UINavigationController(rootViewController: contactPickerScene)
     self.present(navigationController, animated: true, completion: nil)
     
@@ -51,4 +53,22 @@ class ViewController: UIViewController, EPPickerDelegate {
         }
     }
 
+}
+
+extension ViewController: EPExternalSourceDelegate {
+    
+    func epExternalContactsSectionTitle() -> String {
+        return "Users"
+    }
+    
+    func epExternalContactsData() -> [CNContact] {
+        let contact1 = CNMutableContact()
+        contact1.familyName = "Test"
+        contact1.givenName = "User"
+        contact1.phoneNumbers = [CNLabeledValue<CNPhoneNumber>(label:CNLabelPhoneNumberMain, value:CNPhoneNumber(stringValue: "12345690"))]
+        
+        return [contact1]
+    }
+    
+    
 }
