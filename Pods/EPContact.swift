@@ -11,6 +11,7 @@ import Contacts
 
 open class EPContact {
     
+    open var contactType: CNContactType
     open var firstName: String
     open var lastName: String
     open var company: String
@@ -23,6 +24,7 @@ open class EPContact {
     open var emails = [(email: String, emailLabel: String )]()
 	
     public init (contact: CNContact) {
+        contactType = contact.contactType
         firstName = contact.givenName
         lastName = contact.familyName
         company = contact.organizationName
