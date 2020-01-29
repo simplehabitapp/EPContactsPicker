@@ -54,7 +54,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     
     var subtitleCellValue = SubtitleCellValue.phoneNumber
     var multiSelectEnabled: Bool = false //Default is single selection contact
-    var showBarButtons: Bool = true
+    public var showBarButtons: Bool = true
     
     // MARK: - Lifecycle Methods
     
