@@ -54,6 +54,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     
     var subtitleCellValue = SubtitleCellValue.phoneNumber
     var multiSelectEnabled: Bool = false //Default is single selection contact
+    var showBarButtons: Bool = true
     
     // MARK: - Lifecycle Methods
     
@@ -62,7 +63,11 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
         self.title = EPGlobalConstants.Strings.contactsTitle
 
         registerContactCell()
-        inititlizeBarButtons()
+        
+        if showBarButtons {
+            self.inititlizeBarButtons()
+        }
+        
         initializeSearchBar()
         reloadContacts()
     }
