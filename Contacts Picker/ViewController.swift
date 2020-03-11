@@ -64,10 +64,15 @@ extension ViewController: EPExternalSourceDelegate {
     func epExternalContactsData() -> [CNContact] {
         let contact1 = CNMutableContact()
         contact1.familyName = "Test"
-        contact1.givenName = "User"
+        contact1.givenName = "User1"
         contact1.phoneNumbers = [CNLabeledValue<CNPhoneNumber>(label:CNLabelPhoneNumberMain, value:CNPhoneNumber(stringValue: "12345690"))]
         
-        return [contact1]
+        let contact2 = CNMutableContact()
+        contact2.familyName = "Test"
+        contact2.givenName = "User2"
+        contact2.phoneNumbers = [CNLabeledValue<CNPhoneNumber>(label:CNLabelPhoneNumberMain, value:CNPhoneNumber(stringValue: "12345690"))]
+        
+        return [contact1, contact2]
     }
     
     

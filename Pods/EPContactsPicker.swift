@@ -56,6 +56,8 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     var multiSelectEnabled: Bool = false //Default is single selection contact
     public var showBarButtons: Bool = true
     
+    var isSearchActive: Bool = false
+    
     // MARK: - Lifecycle Methods
     
     override open func viewDidLoad() {
@@ -75,6 +77,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     func initializeSearchBar() {
         self.resultSearchController = ( {
             let controller = UISearchController(searchResultsController: nil)
+            controller.delegate = self
             controller.searchResultsUpdater = self
             controller.dimsBackgroundDuringPresentation = false
             controller.hidesNavigationBarDuringPresentation = false
@@ -258,12 +261,14 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     // MARK: - Table View DataSource
     
     override open func numberOfSections(in tableView: UITableView) -> Int {
-        if resultSearchController.isActive { return 1 }
+        if isSearchActive { return 1 }
         return sortedContactKeys.count
     }
     
     override open func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        if resultSearchController.isActive { return filteredContacts.count }
+        if isSearchActive {
+            return filteredContacts.count
+        }
         if let contactsForSection = orderedContacts[sortedContactKeys[section]] {
             return contactsForSection.count
         }
@@ -278,7 +283,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
         //Convert CNContact to EPContact
 		let contact: EPContact
         
-        if resultSearchController.isActive {
+        if isSearchActive {
             contact = EPContact(contact: filteredContacts[(indexPath as NSIndexPath).row])
         } else {
 			guard let contactsForSection = orderedContacts[sortedContactKeys[(indexPath as NSIndexPath).section]] else {
@@ -330,19 +335,19 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     }
     
     override open func tableView(_ tableView: UITableView, sectionForSectionIndexTitle title: String, at index: Int) -> Int {
-        if resultSearchController.isActive { return 0 }
+        if isSearchActive { return 0 }
         if title.count > 1 { return 0 }
         tableView.scrollToRow(at: IndexPath(row: 0, section: index), at: UITableView.ScrollPosition.top , animated: false)
         return sortedContactKeys.firstIndex(of: title)!
     }
     
     override  open func sectionIndexTitles(for tableView: UITableView) -> [String]? {
-        if resultSearchController.isActive { return nil }
+        if isSearchActive { return nil }
         return sortedContactKeys.filter { $0 != externalSourceDelegate?.epExternalContactsSectionTitle() }
     }
 
     override open func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
-        if resultSearchController.isActive { return nil }
+        if isSearchActive { return nil }
         return sortedContactKeys[section]
     }
     
@@ -395,4 +400,15 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
         })
     }
     
+}
+
+extension EPContactsPicker: UISearchControllerDelegate {
+    
+    public func willPresentSearchController(_ searchController: UISearchController) {
+        self.isSearchActive = true
+    }
+    
+    public func willDismissSearchController(_ searchController: UISearchController) {
+        self.isSearchActive = false
+    }
 }
