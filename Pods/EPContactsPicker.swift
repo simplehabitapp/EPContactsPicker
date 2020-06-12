@@ -48,7 +48,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     var resultSearchController = UISearchController()
     var orderedContacts = [String: [CNContact]]() //Contacts ordered in dicitonary alphabetically
     var sortedContactKeys = [String]()
-    
+    var numberListRemoved = [String]()
     var selectedContacts = [EPContact]()
     var filteredContacts = [CNContact]()
     
@@ -137,11 +137,12 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
         contactDelegate = delegate
     }
 
-    convenience public init(delegate: EPPickerDelegate?, multiSelection : Bool, subtitleCellType: SubtitleCellValue) {
+  convenience public init(delegate: EPPickerDelegate?, multiSelection : Bool, subtitleCellType: SubtitleCellValue, numberListRemoved: [String] = []) {
         self.init(style: .plain)
         self.multiSelectEnabled = multiSelection
         contactDelegate = delegate
         subtitleCellValue = subtitleCellType
+        self.numberListRemoved = numberListRemoved
     }
     
     
@@ -202,7 +203,11 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
                 
                 do {
                     try contactsStore?.enumerateContacts(with: contactFetchRequest, usingBlock: { (contact, stop) -> Void in
-                        //Ordering contacts based on alphabets in firstname
+
+                      if self.isContactThereInRemovedList(contact: contact) {
+                        return
+                      }
+                       //Ordering contacts based on alphabets in firstname
                         contactsArray.append(contact)
                         var key: String = "#"
                         //If ordering has to be happening via family name change it here.
@@ -241,6 +246,24 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
             print("Undefined error")
         }
     }
+
+  func isContactThereInRemovedList(contact: CNContact) -> Bool {
+    let currentContact = EPContact(contact: contact)
+    let currentContactNumbers = currentContact.phoneNumbers
+
+    let existedContacts = currentContactNumbers.filter { (phoneNumber,phoneLabel) in
+      if self.numberListRemoved.contains(phoneNumber) {
+        return true
+      }
+      return false
+    }
+
+    if existedContacts.count > 0 {
+      return true
+    }
+
+    return false
+  }
     
     func allowedContactKeys() -> [CNKeyDescriptor]{
         //We have to provide only the keys which we have to access. We should avoid unnecessary keys when fetching the contact. Reducing the keys means faster the access.
