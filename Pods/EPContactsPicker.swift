@@ -137,7 +137,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
         contactDelegate = delegate
     }
 
-  convenience public init(delegate: EPPickerDelegate?, multiSelection : Bool, subtitleCellType: SubtitleCellValue, numberListRemoved: [String] = []) {
+  convenience public init(delegate: EPPickerDelegate?, multiSelection : Bool, subtitleCellType: SubtitleCellValue, numberListRemoved :[String] = []) {
         self.init(style: .plain)
         self.multiSelectEnabled = multiSelection
         contactDelegate = delegate
@@ -204,9 +204,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
                 do {
                     try contactsStore?.enumerateContacts(with: contactFetchRequest, usingBlock: { (contact, stop) -> Void in
 
-                      if self.isContactThereInRemovedList(contact: contact) {
-                        return
-                      }
+                      if !self.isContactThereInRemovedList(contact: contact) {
                        //Ordering contacts based on alphabets in firstname
                         contactsArray.append(contact)
                         var key: String = "#"
@@ -221,6 +219,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
                         }
                         contacts.append(contact)
                         self.orderedContacts[key] = contacts
+                      }
 
                     })
                     self.sortedContactKeys = Array(self.orderedContacts.keys).sorted(by: <)
@@ -248,10 +247,8 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     }
 
   func isContactThereInRemovedList(contact: CNContact) -> Bool {
-    let currentContact = EPContact(contact: contact)
-    let currentContactNumbers = currentContact.phoneNumbers
-
-    let existedContacts = currentContactNumbers.filter { (phoneNumber,phoneLabel) in
+    let currentContactNumbers = contact.phoneNumbers.map({ $0.value.stringValue})
+    let existedContacts = currentContactNumbers.filter { phoneNumber in
       if self.numberListRemoved.contains(phoneNumber) {
         return true
       }
@@ -263,6 +260,15 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
     }
 
     return false
+  }
+
+  func updateFilteredContacsList(contacts: [CNContact]) -> [CNContact] {
+    let filteredContacts = contacts.filter { contact in
+      let allNumbers = contact.phoneNumbers.map({ $0.value.stringValue })
+      let commonElements = allNumbers.filter(self.numberListRemoved.contains)
+      return commonElements.count == 0
+    }
+    return filteredContacts
   }
     
     func allowedContactKeys() -> [CNKeyDescriptor]{
@@ -406,7 +412,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
                 filteredContacts = try store.unifiedContacts(matching: predicate,
                     keysToFetch: allowedContactKeys())
                 //print("\(filteredContacts.count) count")
-                
+                filteredContacts = self.updateFilteredContacsList(contacts: filteredContacts)
                 self.tableView.reloadData()
                 
             }
@@ -415,7 +421,7 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
             }
         }
     }
-    
+
     open func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
         
         DispatchQueue.main.async(execute: {
