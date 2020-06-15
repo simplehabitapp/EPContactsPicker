@@ -24,8 +24,8 @@ public extension EPPickerDelegate {
   func epContactPicker(_: EPContactsPicker, didCancel error: NSError) { }
   func epContactPicker(_: EPContactsPicker, didSelectContact contact: EPContact) { }
   func epContactPicker(_: EPContactsPicker, didSelectMultipleContacts contacts: [EPContact]) { }
-  func epContactPicker(_: EPContactsPicker, shouldShow contact: CNContact) -> Bool { return false }
-  func epContactPicker(_: EPContactsPicker, filter contacts: [CNContact]) -> [CNContact] { return [] }
+  func epContactPicker(_: EPContactsPicker, shouldShow contact: CNContact) -> Bool { return true }
+  func epContactPicker(_: EPContactsPicker, filter contacts: [CNContact]) -> [CNContact] { return contacts }
 }
 
 public protocol EPExternalSourceDelegate {
@@ -388,7 +388,10 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
         filteredContacts = try store.unifiedContacts(matching: predicate,
                                                      keysToFetch: allowedContactKeys())
         //print("\(filteredContacts.count) count")
-        filteredContacts = self.contactDelegate?.epContactPicker(self, filter: filteredContacts) ?? []
+        if let contacts = self.contactDelegate?.epContactPicker(self, filter: filteredContacts) {
+          filteredContacts = contacts
+        }
+        
         self.tableView.reloadData()
 
       }
