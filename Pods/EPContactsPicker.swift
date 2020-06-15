@@ -390,8 +390,8 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
         //print("\(filteredContacts.count) count")
         if let contacts = self.contactDelegate?.epContactPicker(self, filter: filteredContacts) {
           filteredContacts = contacts
-          self.tableView.reloadData()
         }
+        self.tableView.reloadData()
       }
       catch {
         print("Error!")
