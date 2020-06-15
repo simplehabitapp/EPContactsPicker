@@ -16,7 +16,6 @@ public protocol EPPickerDelegate: class {
   func epContactPicker(_: EPContactsPicker, didSelectContact contact: EPContact)
   func epContactPicker(_: EPContactsPicker, didSelectMultipleContacts contacts: [EPContact])
   func epContactPicker(_: EPContactsPicker, shouldShow contact: CNContact) -> Bool
-  func epContactPicker(_: EPContactsPicker, filter contacts: [CNContact]) -> [CNContact]
 }
 
 public extension EPPickerDelegate {
@@ -25,7 +24,6 @@ public extension EPPickerDelegate {
   func epContactPicker(_: EPContactsPicker, didSelectContact contact: EPContact) { }
   func epContactPicker(_: EPContactsPicker, didSelectMultipleContacts contacts: [EPContact]) { }
   func epContactPicker(_: EPContactsPicker, shouldShow contact: CNContact) -> Bool { return true }
-  func epContactPicker(_: EPContactsPicker, filter contacts: [CNContact]) -> [CNContact] { return contacts }
 }
 
 public protocol EPExternalSourceDelegate {
@@ -387,10 +385,11 @@ open class EPContactsPicker: UITableViewController, UISearchResultsUpdating, UIS
       do {
         filteredContacts = try store.unifiedContacts(matching: predicate,
                                                      keysToFetch: allowedContactKeys())
-        //print("\(filteredContacts.count) count")
-        if let contacts = self.contactDelegate?.epContactPicker(self, filter: filteredContacts) {
-          filteredContacts = contacts
+
+        filteredContacts = filteredContacts.filter { contact in
+          return contactDelegate?.epContactPicker(self, shouldShow: contact) ?? true
         }
+
         self.tableView.reloadData()
       }
       catch {
